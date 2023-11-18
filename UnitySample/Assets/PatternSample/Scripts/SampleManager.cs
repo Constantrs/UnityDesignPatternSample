@@ -16,7 +16,7 @@ public class SampleManager : MonoBehaviour
 
     private static SampleManager _Instance;
 
-    private PlayerInput _Input = null;
+    private InputManager _Input = null;
 
     private void Awake()
     {
@@ -34,7 +34,7 @@ public class SampleManager : MonoBehaviour
 
     public void Initialize()
     {
-        _Input = new PlayerInput();
+        _Input = new InputManager();
 
         switch (fpsmode)
         {
@@ -52,7 +52,7 @@ public class SampleManager : MonoBehaviour
         }
     }
 
-    public PlayerInput GetPlayerInput()
+    public InputManager GetPlayerInput()
     {
         return _Input;
     }

@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-public class PlayerInput
+public class InputManager
 {
     public float horizontal { get; private set; }
     public float vertical { get; private set; }
 
+    public bool click { get; private set; }
+
     private bool _Enable = false;
 
-    public PlayerInput()
+    public InputManager()
     {
         _Enable = true;
     }
@@ -22,11 +24,13 @@ public class PlayerInput
         {
             horizontal = Input.GetAxisRaw("Horizontal");
             vertical = Input.GetAxisRaw("Vertical");
+            click = Input.GetMouseButtonDown(0);
         }
         else
         {
             horizontal = 0.0f;
             vertical = 0.0f;
+            click = false;
         }
     }
 
