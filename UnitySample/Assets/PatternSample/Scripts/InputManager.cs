@@ -8,7 +8,9 @@ public class InputManager
     public float horizontal { get; private set; }
     public float vertical { get; private set; }
 
-    public bool click { get; private set; }
+    public bool leftClick { get; private set; }
+
+    public bool rightClick { get; private set; }
 
     private bool _Enable = false;
 
@@ -24,13 +26,15 @@ public class InputManager
         {
             horizontal = Input.GetAxisRaw("Horizontal");
             vertical = Input.GetAxisRaw("Vertical");
-            click = Input.GetMouseButtonDown(0);
+            leftClick = Input.GetMouseButtonDown(0);
+            rightClick = Input.GetMouseButtonDown(1);
         }
         else
         {
             horizontal = 0.0f;
             vertical = 0.0f;
-            click = false;
+            leftClick = false;
+            rightClick = false;
         }
     }
 

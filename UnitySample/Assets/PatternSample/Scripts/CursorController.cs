@@ -24,6 +24,8 @@ public class CursorController
 {
     public RaycastData raycastData = new RaycastData();
     public GameObject effect;
+    public Material clickMat;
+    public Material forceClickMat;
 
     private ParticleSystem _particle = null;
     private RaycastResult _result = new RaycastResult();
@@ -46,14 +48,36 @@ public class CursorController
 
             if (Physics.Raycast(ray, out hit, raycastData.maxRayDistance, raycastData.layerMask))
             {
-                if (_particle)
-                {
-                    _particle.Play();
-                }
                 _result.hitted = true;
                 _result.targetPos = hit.point;
                 effect.transform.position = hit.point + raycastData.effectOffset;
             }
+        }
+    }
+
+    public void PlayClickEffct()
+    {
+        if (_particle)
+        {
+            var renderer = effect.GetComponent<ParticleSystemRenderer>();
+            if(renderer != null) 
+            {
+                renderer.sharedMaterial = clickMat;
+            }
+           _particle.Play();
+        }
+    }
+
+    public void PlayForceClickEffct()
+    {
+        if (_particle)
+        {
+            var renderer = effect.GetComponent<ParticleSystemRenderer>();
+            if (renderer != null)
+            {
+                renderer.sharedMaterial = forceClickMat;
+            }
+            _particle.Play();
         }
     }
 
