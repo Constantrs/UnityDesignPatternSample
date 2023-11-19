@@ -10,7 +10,7 @@ public class CharacterParameters
     public float moveSpeed = 0.5f;
 }
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : Subject
 {
     public CursorController cursor;
     public CharacterParameters parameters;
@@ -25,6 +25,7 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
+        NotifyOvservers();
         cursor.Initialize();
     }
 
