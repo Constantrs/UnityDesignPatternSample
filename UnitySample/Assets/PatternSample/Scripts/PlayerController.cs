@@ -6,7 +6,6 @@ using System.Collections.Generic;
 [System.Serializable]
 public class CharacterParameters
 {
-    public float height = 1.0f;
     public float moveSpeed = 0.5f;
 }
 
@@ -15,18 +14,27 @@ public class PlayerController : Subject
     public CursorController cursor;
     public CharacterParameters parameters;
 
-    private Vector3 _moveDirection = Vector3.zero;
-
     private Coroutine _Process = null;
     private bool isProcessing => _Process != null;
 
+    private Vector3 _startPosition = Vector3.zero;
     private Vector3 _targetPosition = Vector3.zero;
+
+    private Animator animator;
+    private int _IdieHash;
+    private int _RunHash;
+    private int _IdieParamID;
+
     private CommandManager _commandManager = new CommandManager();
 
     private void Awake()
     {
-        NotifyOvservers();
-        cursor.Initialize();
+        Initialize();
+    }
+
+    private void Start()
+    {
+        // NotifyOvservers();
     }
 
     // Update is called once per frame
@@ -48,12 +56,12 @@ public class PlayerController : Subject
                 RaycastResult result = cursor.GetRaycastResult();
                 if(result.hitted)
                 {
-                    Vector3 targetPos = new Vector3(result.targetPos.x, result.targetPos.y + parameters.height, result.targetPos.z);
+                    Vector3 targetPos = new Vector3(result.targetPos.x, result.targetPos.y, result.targetPos.z);
 
                     if(input.leftClick)
                     {
                         cursor.PlayForceClickEffct();
-                        ICommand moveCommand = new MoveCommand(this, targetPos);
+                        ICommand moveCommand = new MoveCommand(this, transform.position, targetPos);
                         _commandManager.AddCommand(moveCommand);
                     }
                     else
@@ -61,7 +69,7 @@ public class PlayerController : Subject
                         cursor.PlayClickEffct();
                         if(!isProcessing)
                         {
-                            ICommand moveCommand = new MoveCommand(this, targetPos);
+                            ICommand moveCommand = new MoveCommand(this, transform.position, targetPos);
                             _commandManager.AddCommand(moveCommand);
                         }
                     }
@@ -75,23 +83,47 @@ public class PlayerController : Subject
     public Coroutine StartMoveToTarget(Vector3 targetPosition)
     {
         StopMove();
+        _startPosition = transform.position;
         _targetPosition = targetPosition;
         _Process = StartCoroutine(CoMoveToTarget());
         return _Process;
     }
-
     public void StopMove()
     {
         if (!isProcessing)
             return;
 
+        animator.SetBool(_IdieParamID, false);
         StopCoroutine(_Process);
         _Process = null;
+    }
+
+    private void Initialize()
+    {
+        cursor.Initialize();
+
+        animator = GetComponent<Animator>();
+        if (animator != null )
+        {
+            _IdieHash = Animator.StringToHash("Idie");
+            _RunHash = Animator.StringToHash("Run");
+            _IdieParamID = Animator.StringToHash("isMoving");
+        }
     }
 
     IEnumerator CoMoveToTarget()
     {
         bool moveEnd = false;
+
+        Vector3 deltaPos = _targetPosition - _startPosition;
+        Vector3 moveDirection = deltaPos.normalized;
+        float moveDistance = deltaPos.magnitude;
+        float moveTime = moveDistance / parameters.moveSpeed;
+        float currentTime = 0.0f;
+
+        transform.LookAt(_targetPosition);
+        animator.SetBool(_IdieParamID, true);
+
         while (!moveEnd)
         {
             var manager = SampleManager.GetInstance();
@@ -100,26 +132,22 @@ public class PlayerController : Subject
                 moveEnd = true;
             }
 
-            if (!moveEnd)
+            if (currentTime >= moveTime)
             {
-                Vector3 deltaPos = _targetPosition - transform.position;
-                float distance = deltaPos.magnitude;
-                if (distance < parameters.moveSpeed)
-                {
-                    transform.position = _targetPosition;
-                    moveEnd = true;
-                }
-                else
-                {
-                    _moveDirection = deltaPos.normalized;
-                    Vector3 moveVector = _moveDirection * parameters.moveSpeed * manager.GetTimeScale();
-                    transform.position += moveVector;
-                }
-
-                yield return new WaitForFixedUpdate();
+                transform.position = _targetPosition;
+                moveEnd = true;
             }
+            else
+            {
+                float timeRate = currentTime / moveTime;
+                Vector3 currentPos = Vector3.Lerp(_startPosition, _targetPosition, timeRate);
+                transform.position = currentPos;
+                currentTime += manager.GetTimeScale();
+            }
+
+            yield return new WaitForFixedUpdate();
         }
-        _moveDirection = Vector3.zero;
+        animator.SetBool(_IdieParamID, false);
         _Process = null;
     }
 

@@ -21,7 +21,8 @@ public class UIManager : MonoBehaviour, IObserver
 
     public void OnNotify()
     {
-        ShowAchievement("ASD");
+        ShowAchievement("TestAchievement");
+        Debug.Log("Achievement");
     }
 
     private void ShowAchievement(string text)

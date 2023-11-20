@@ -1,9 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Security.Cryptography;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public abstract class ICommand
 {
@@ -17,12 +13,14 @@ public class MoveCommand : ICommand
     private const string CommandName = "MoveCommand";
 
     private PlayerController _Controller;
+    private Vector3 _StartPos;
     private Vector3 _TartgetPos;
 
-    public MoveCommand(PlayerController controller, Vector3 target)
+    public MoveCommand(PlayerController controller, Vector3 startPos, Vector3 targetPos)
     {
         _Controller = controller;
-        _TartgetPos = target;
+        _StartPos = startPos;
+        _TartgetPos = targetPos;
     }
 
     public override void Execute()
@@ -33,7 +31,8 @@ public class MoveCommand : ICommand
     public override string GetCommandStr()
     {
         string str = CommandName;
-        str += $" {_TartgetPos} ";
+        str += $" From : {_StartPos} ";
+        str += $" To : {_TartgetPos} ";
         return str; 
     }
 }
