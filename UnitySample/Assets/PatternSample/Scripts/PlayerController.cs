@@ -3,6 +3,17 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 
+public class PauseMessage : NotifyMessage
+{
+    public bool paused;
+
+    public PauseMessage(bool pause)
+    {
+        this.paused = pause;
+    }
+}
+
+
 [System.Serializable]
 public class CharacterParameters
 {
@@ -14,8 +25,10 @@ public class PlayerController : Subject
     public CursorController cursor;
     public CharacterParameters parameters;
 
+
     private Coroutine _Process = null;
     private bool isProcessing => _Process != null;
+    private SampleManager manager => SampleManager.GetInstance();
 
     private Vector3 _startPosition = Vector3.zero;
     private Vector3 _targetPosition = Vector3.zero;
@@ -32,15 +45,9 @@ public class PlayerController : Subject
         Initialize();
     }
 
-    private void Start()
-    {
-        // NotifyOvservers();
-    }
-
     // Update is called once per frame
     void Update()
     {
-        var manager = SampleManager.GetInstance();
         if (manager == null)
         {
             return;
@@ -50,9 +57,17 @@ public class PlayerController : Subject
         if (input != null)
         {
             input.UpdateInput();
-            if(input.leftClick || input.rightClick)
+            if(input.pause) 
             {
-                cursor.UpdateCursor();
+                bool nextPauseFlag = !manager.pause;
+                animator.speed = nextPauseFlag ? 0.0f : 1.0f;
+                NotifyOvservers(new PauseMessage(nextPauseFlag));
+                manager.pause = nextPauseFlag;
+            }
+
+            if(manager.GetTimeScale() != 0.0f && (input.leftClick || input.rightClick) )
+            {
+                cursor.CalculateRaycast();
                 RaycastResult result = cursor.GetRaycastResult();
                 if(result.hitted)
                 {
@@ -79,7 +94,6 @@ public class PlayerController : Subject
             }
         }
     }
-
     public Coroutine StartMoveToTarget(Vector3 targetPosition)
     {
         StopMove();
@@ -88,6 +102,7 @@ public class PlayerController : Subject
         _Process = StartCoroutine(CoMoveToTarget());
         return _Process;
     }
+
     public void StopMove()
     {
         if (!isProcessing)
@@ -110,42 +125,35 @@ public class PlayerController : Subject
             _IdieParamID = Animator.StringToHash("isMoving");
         }
     }
-
     IEnumerator CoMoveToTarget()
     {
         bool moveEnd = false;
-
-        Vector3 deltaPos = _targetPosition - _startPosition;
-        Vector3 moveDirection = deltaPos.normalized;
-        float moveDistance = deltaPos.magnitude;
+        float moveDistance = (_targetPosition - _startPosition).magnitude;
         float moveTime = moveDistance / parameters.moveSpeed;
-        float currentTime = 0.0f;
+        float timer = 0.0f;
 
         transform.LookAt(_targetPosition);
         animator.SetBool(_IdieParamID, true);
 
         while (!moveEnd)
         {
-            var manager = SampleManager.GetInstance();
             if (manager == null)
             {
                 moveEnd = true;
             }
 
-            if (currentTime >= moveTime)
+            if (timer >= moveTime)
             {
                 transform.position = _targetPosition;
                 moveEnd = true;
             }
             else
             {
-                float timeRate = currentTime / moveTime;
-                Vector3 currentPos = Vector3.Lerp(_startPosition, _targetPosition, timeRate);
-                transform.position = currentPos;
-                currentTime += manager.GetTimeScale();
+                float timeRate = Mathf.Clamp(timer / moveTime, 0.0f, 1.0f);
+                transform.position = Vector3.Lerp(_startPosition, _targetPosition, timeRate);
+                timer += manager.GetTimeScale();
             }
-
-            yield return new WaitForFixedUpdate();
+            yield return null;
         }
         animator.SetBool(_IdieParamID, false);
         _Process = null;

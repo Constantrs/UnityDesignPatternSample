@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 public class SampleManager : MonoBehaviour
 {
@@ -11,18 +12,25 @@ public class SampleManager : MonoBehaviour
         FORCE_60,
     }
 
-    public Framerate fpsmode = Framerate.FORCE_60;
-
     private static SampleManager _Instance;
+
+    public Framerate fpsmode = Framerate.FORCE_60;
+    public bool pause = false;
 
     private InputManager _Input = null;
 
     private void Awake()
     {
-        if (_Instance == null)
+        if (_Instance != null && _Instance != this)
         {
-            Initialize();
-            _Instance = this;
+            Destroy(this);
+        }
+        else
+        {
+            if(Initialize())
+            {
+                _Instance = this;
+            }
         }
     }
 
@@ -31,10 +39,8 @@ public class SampleManager : MonoBehaviour
         return _Instance;
     }
 
-    public void Initialize()
+    public bool Initialize()
     {
-        _Input = new InputManager();
-
         switch (fpsmode)
         {
             case Framerate.UNLIMITED:
@@ -49,6 +55,9 @@ public class SampleManager : MonoBehaviour
                 Application.targetFrameRate = 60;
                 break;
         }
+
+        _Input = new InputManager();
+        return true;
     }
 
     public InputManager GetPlayerInput()
@@ -58,17 +67,26 @@ public class SampleManager : MonoBehaviour
 
     public float GetTimeScale()
     {
-        if (fpsmode == Framerate.FORCE_60)
+        if (pause)
         {
-            return 1.0f;
-        }
-        else if (fpsmode == Framerate.FORCE_30)
-        {
-            return 2.0f;
+            return 0.0f;
         }
         else
         {
-            return Time.deltaTime;
+            if (fpsmode == Framerate.FORCE_60)
+            {
+                return 1.0f;
+            }
+            else if (fpsmode == Framerate.FORCE_30)
+            {
+                return 2.0f;
+            }
+            else
+            {
+                return Time.deltaTime;
+            }
         }
     }
+
+
 }

@@ -3,9 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public abstract class NotifyMessage
+{
+    
+}
+
 public interface IObserver
 {
-    public void OnNotify();
+    public void OnNotify(NotifyMessage message);
 }
 
 public class Subject : MonoBehaviour
@@ -22,8 +27,8 @@ public class Subject : MonoBehaviour
         _observers.Remove(observer);
     }
 
-    protected void NotifyOvservers()
+    protected void NotifyOvservers(NotifyMessage message)
     {
-        _observers.ForEach(observer => observer.OnNotify());
+        _observers.ForEach(observer => observer.OnNotify(message));
     }
 }

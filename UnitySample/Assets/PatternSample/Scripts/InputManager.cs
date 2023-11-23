@@ -8,6 +8,8 @@ public class InputManager
 
     public bool rightClick { get; private set; }
 
+    public bool pause { get; private set; }
+
     private bool _Enable = false;
 
     public InputManager()
@@ -24,6 +26,7 @@ public class InputManager
             vertical = Input.GetAxisRaw("Vertical");
             leftClick = Input.GetMouseButtonDown(0);
             rightClick = Input.GetMouseButtonDown(1);
+            pause = Input.GetKeyDown(KeyCode.P);
         }
         else
         {
@@ -31,6 +34,7 @@ public class InputManager
             vertical = 0.0f;
             leftClick = false;
             rightClick = false;
+            pause = false;
         }
     }
 

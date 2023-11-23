@@ -1,14 +1,26 @@
+using System.Collections;
 using UnityEngine;
 
-public class ItemController : MonoBehaviour
+public class UnlockAchievementMessage : NotifyMessage
+{
+    public int achievementId;
+
+    public UnlockAchievementMessage(int achievementId)
+    {
+        this.achievementId = achievementId;
+    }
+}
+
+public class ItemController : Subject
 {
     public float rotateSpeed = 1.0f;
-    private float _EulerY = 0.0f;
+    public float fadeOutTime = 30.0f;
 
+    private float _EulerY = 0.0f;
+    private SampleManager manager => SampleManager.GetInstance();
     // Update is called once per frame
     void Update()
     {
-        var manager = SampleManager.GetInstance();
         if (manager == null)
         {
             return;
@@ -20,19 +32,46 @@ public class ItemController : MonoBehaviour
             _EulerY -= 360.0f;
         }
 
-        transform.rotation = Quaternion.Euler(new Vector3(0.0f, _EulerY, 0.0f));
+        Vector3 euler = transform.rotation.eulerAngles;
+        euler.y = _EulerY;
+        transform.rotation = Quaternion.Euler(euler);
     }
 
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
-            ItemDestory();
+            StartCoroutine(CoDestory());
         }
     }
 
-    private void ItemDestory()
+    IEnumerator CoDestory()
     {
+        bool fadeOutEnd = false;
+        float timer = 0.0f;
+        Vector3 originalScale = transform.localScale;
+        NotifyOvservers(new UnlockAchievementMessage(0));
+        while (!fadeOutEnd) 
+        {
+            if (manager == null)
+            {
+                fadeOutEnd = true;
+            }
+
+            if (timer >= fadeOutTime)
+            {
+                transform.localScale = Vector3.zero;
+                fadeOutEnd = true;
+            }
+            else
+            {
+                float timeRate = Mathf.Clamp(timer / fadeOutTime, 0.0f, 1.0f);
+                transform.localScale = Vector3.Lerp(originalScale, Vector3.zero, timeRate);
+                timer += manager.GetTimeScale();
+            }
+            yield return null;
+        }
+
         Destroy(gameObject);
     }
 }

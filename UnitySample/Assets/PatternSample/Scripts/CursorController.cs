@@ -27,6 +27,11 @@ public class CursorController
     private ParticleSystem _particle = null;
     private RaycastResult _result = new RaycastResult();
 
+    private void Awake()
+    {
+        Initialize();
+    }
+
     public void Initialize()
     {
         if(effect != null) 
@@ -34,8 +39,7 @@ public class CursorController
            _particle = effect.GetComponent<ParticleSystem>();
         }
     }
-    
-    public void UpdateCursor()
+    public void CalculateRaycast()
     {
         if (raycastData != null)
         {
