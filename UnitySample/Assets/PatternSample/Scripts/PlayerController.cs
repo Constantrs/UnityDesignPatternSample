@@ -25,11 +25,11 @@ public class PlayerController : Subject
     public CursorController cursor;
     public CharacterParameters parameters;
 
-
     private Coroutine _Process = null;
     private bool isProcessing => _Process != null;
     private SampleManager manager => SampleManager.GetInstance();
 
+    private Vector3 _defaultPostion = Vector3.zero;
     private Vector3 _startPosition = Vector3.zero;
     private Vector3 _targetPosition = Vector3.zero;
 
@@ -57,7 +57,7 @@ public class PlayerController : Subject
         if (input != null)
         {
             input.UpdateInput();
-            if(input.pause) 
+            if (input.pause)
             {
                 bool nextPauseFlag = !manager.pause;
                 animator.speed = nextPauseFlag ? 0.0f : 1.0f;
@@ -65,41 +65,58 @@ public class PlayerController : Subject
                 manager.pause = nextPauseFlag;
             }
 
-            if(manager.GetTimeScale() != 0.0f && (input.leftClick || input.rightClick) )
+            if (manager.GetTimeScale() != 0.0f)
             {
-                cursor.CalculateRaycast();
-                RaycastResult result = cursor.GetRaycastResult();
-                if(result.hitted)
+                if (input.undo)
                 {
-                    Vector3 targetPos = new Vector3(result.targetPos.x, result.targetPos.y, result.targetPos.z);
+                    _commandManager.UndoCommand();
+                }
+                else if (input.leftClick || input.rightClick)
+                {
+                    cursor.CalculateRaycast();
+                    RaycastResult result = cursor.GetRaycastResult();
+                    if (result.hitted)
+                    {
+                        Vector3 targetPos = new Vector3(result.targetPos.x, result.targetPos.y, result.targetPos.z);
 
-                    if(input.leftClick)
-                    {
-                        cursor.PlayForceClickEffct();
-                        ICommand moveCommand = new MoveCommand(this, transform.position, targetPos);
-                        _commandManager.AddCommand(moveCommand);
-                    }
-                    else
-                    {
-                        cursor.PlayClickEffct();
-                        if(!isProcessing)
+                        if (input.leftClick)
                         {
-                            ICommand moveCommand = new MoveCommand(this, transform.position, targetPos);
+                            cursor.PlayForceClickEffct();
+                            ICommand moveCommand = new MoveCommand(this, transform.position, targetPos, transform.rotation);
                             _commandManager.AddCommand(moveCommand);
                         }
+                        else
+                        {
+                            cursor.PlayClickEffct();
+                            if (!isProcessing)
+                            {
+                                ICommand moveCommand = new MoveCommand(this, transform.position, targetPos, transform.rotation);
+                                _commandManager.AddCommand(moveCommand);
+                            }
+                        }
+                        //StartMoveToTarget(targetPos);
+                        Debug.Log($"Cursor Position : {result.targetPos}");
                     }
-                    //StartMoveToTarget(targetPos);
-                    Debug.Log($"Cursor Position : {result.targetPos}");
                 }
             }
         }
     }
+
     public Coroutine StartMoveToTarget(Vector3 targetPosition)
     {
         StopMove();
         _startPosition = transform.position;
         _targetPosition = targetPosition;
-        _Process = StartCoroutine(CoMoveToTarget());
+        _Process = StartCoroutine(CoMove());
+        return _Process;
+    }
+
+    public Coroutine StartReverseMove(Vector3 originalPosition, Quaternion originalRotation)
+    {
+        StopMove();
+        _startPosition = transform.position;
+        _targetPosition = originalPosition;
+        _Process = StartCoroutine(CoReverseMove(originalRotation));
         return _Process;
     }
 
@@ -117,6 +134,8 @@ public class PlayerController : Subject
     {
         cursor.Initialize();
 
+        _defaultPostion = transform.position;
+
         animator = GetComponent<Animator>();
         if (animator != null )
         {
@@ -125,7 +144,7 @@ public class PlayerController : Subject
             _IdieParamID = Animator.StringToHash("isMoving");
         }
     }
-    IEnumerator CoMoveToTarget()
+    IEnumerator CoMove()
     {
         bool moveEnd = false;
         float moveDistance = (_targetPosition - _startPosition).magnitude;
@@ -155,6 +174,40 @@ public class PlayerController : Subject
             }
             yield return null;
         }
+        animator.SetBool(_IdieParamID, false);
+        _Process = null;
+    }
+
+    IEnumerator CoReverseMove(Quaternion originalRotation)
+    {
+        bool moveEnd = false;
+        float moveDistance = (_targetPosition - _startPosition).magnitude;
+        float moveTime = moveDistance / parameters.moveSpeed;
+        float timer = 0.0f;
+
+        animator.SetBool(_IdieParamID, true);
+
+        while (!moveEnd)
+        {
+            if (manager == null)
+            {
+                moveEnd = true;
+            }
+
+            if (timer >= moveTime)
+            {
+                transform.position = _targetPosition;
+                moveEnd = true;
+            }
+            else
+            {
+                float timeRate = Mathf.Clamp(timer / moveTime, 0.0f, 1.0f);
+                transform.position = Vector3.Lerp(_startPosition, _targetPosition, timeRate);
+                timer += manager.GetTimeScale();
+            }
+            yield return null;
+        }
+        transform.rotation = originalRotation;
         animator.SetBool(_IdieParamID, false);
         _Process = null;
     }

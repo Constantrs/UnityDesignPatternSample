@@ -10,6 +10,8 @@ public class InputManager
 
     public bool pause { get; private set; }
 
+    public bool undo { get; private set; }
+
     private bool _Enable = false;
 
     public InputManager()
@@ -27,6 +29,7 @@ public class InputManager
             leftClick = Input.GetMouseButtonDown(0);
             rightClick = Input.GetMouseButtonDown(1);
             pause = Input.GetKeyDown(KeyCode.P);
+            undo = Input.GetKeyDown(KeyCode.Z);
         }
         else
         {
@@ -35,6 +38,7 @@ public class InputManager
             leftClick = false;
             rightClick = false;
             pause = false;
+            undo = false;
         }
     }
 

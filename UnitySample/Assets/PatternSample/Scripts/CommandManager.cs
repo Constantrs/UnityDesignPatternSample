@@ -5,6 +5,8 @@ public abstract class ICommand
 {
     public abstract void Execute();
 
+    public abstract void Undo();
+
     public abstract string GetCommandStr();
 }
 
@@ -15,17 +17,24 @@ public class MoveCommand : ICommand
     private PlayerController _Controller;
     private Vector3 _StartPos;
     private Vector3 _TartgetPos;
+    private Quaternion _StartRot;
 
-    public MoveCommand(PlayerController controller, Vector3 startPos, Vector3 targetPos)
+    public MoveCommand(PlayerController controller, Vector3 startPos, Vector3 targetPos, Quaternion startRot)
     {
         _Controller = controller;
         _StartPos = startPos;
         _TartgetPos = targetPos;
+        _StartRot = startRot;
     }
 
     public override void Execute()
     {
         _Controller.StartMoveToTarget(_TartgetPos);
+    }
+
+    public override void Undo()
+    {
+        _Controller.StartReverseMove(_StartPos, _StartRot);
     }
 
     public override string GetCommandStr()
@@ -36,7 +45,6 @@ public class MoveCommand : ICommand
         return str; 
     }
 }
-
 
 public class CommandManager
 {
@@ -50,6 +58,15 @@ public class CommandManager
     {
         command.Execute();
         _commandList.Push(command);
+    }
+
+    public void UndoCommand()
+    {
+        if(_commandList.Count > 0) 
+        {
+            ICommand lastCommand = _commandList.Pop();
+            lastCommand.Undo();
+        }
     }
 
     public List<string> GetCommandListStr()
