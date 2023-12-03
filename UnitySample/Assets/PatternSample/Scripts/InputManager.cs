@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 public class InputManager
 {
     public float horizontal { get; private set; }

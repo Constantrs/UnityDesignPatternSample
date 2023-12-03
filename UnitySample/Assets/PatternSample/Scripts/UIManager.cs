@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+
 
 public class UIManager : MonoBehaviour, IObserver
 {
@@ -11,7 +11,8 @@ public class UIManager : MonoBehaviour, IObserver
     private const float ACHIEVEMNT_FADEOUTTIME = 60.0f;
 
     public Image _achievementsImage;
-    public Text _achievementsText;
+    public Text _achievementsInfoText;
+    public Text _achievementsDetailText;
 
     public Text _pauseText;
     private SampleManager manager => SampleManager.GetInstance();
@@ -61,7 +62,7 @@ public class UIManager : MonoBehaviour, IObserver
                     switch (achievementMessage.achievementId)
                     {
                         case 0:
-                            ShowAchievement("You have achieved 'Achievement 0'");
+                            ShowAchievement("アイテムコレクター");
                             break;
                     }
                 }
@@ -86,16 +87,18 @@ public class UIManager : MonoBehaviour, IObserver
     private void ShowAchievement(string text)
     {
         _achievementsImage.enabled = true;
-        _achievementsText.enabled = true;
-        _achievementsText.text = text;
+        _achievementsInfoText.enabled = true;
+        _achievementsDetailText.enabled = true;
+        _achievementsDetailText.text = text;
         StartCoroutine(CoShowAchievement());
     }
 
     private void HideAchievement()
     {
         _achievementsImage.enabled = false;
-        _achievementsText.enabled = false;
-        _achievementsText.text = "";
+        _achievementsInfoText.enabled = false;
+        _achievementsDetailText.enabled = false;
+        _achievementsDetailText.text = "";
         StopCoroutine(CoShowAchievement());
     }
 
@@ -103,17 +106,21 @@ public class UIManager : MonoBehaviour, IObserver
     {
         float timer = 0.0f;
         Color imageColor = _achievementsImage.color;
-        Color textColor = _achievementsText.color;
+        Color textColor =_achievementsDetailText.color;
 
-       _achievementsImage.color = new Color(imageColor.r, imageColor.g, imageColor.b, 0.0f);
-       _achievementsText.color = new Color(textColor.r, textColor.g, textColor.b, 0.0f);
+        _achievementsImage.color = new Color(imageColor.r, imageColor.g, imageColor.b, 0.0f);
+        _achievementsInfoText.color = new Color(textColor.r, textColor.g, textColor.b, 0.0f);
+        _achievementsDetailText.color = new Color(textColor.r, textColor.g, textColor.b, 0.0f);
 
         while(timer < ACHIEVEMNT_FADEINTIME && manager)
         {
             float timeRate = timer / ACHIEVEMNT_FADEINTIME;
             float alpha = Mathf.Lerp(startAlpha, endAlpha, timeRate);
-            _achievementsImage.color = new Color(imageColor.r, imageColor.g, imageColor.b, alpha);
-            _achievementsText.color = new Color(textColor.r, textColor.g, textColor.b, alpha);
+            imageColor.a = alpha;
+            textColor.a = alpha;
+            _achievementsImage.color = imageColor;
+            _achievementsInfoText.color = textColor;
+            _achievementsDetailText.color = textColor;
             timer += manager.GetTimeScale();
             yield return null;
         }
@@ -130,10 +137,15 @@ public class UIManager : MonoBehaviour, IObserver
         {
             float timeRate = timer / ACHIEVEMNT_FADEOUTTIME;
             float alpha = Mathf.Lerp(endAlpha, startAlpha, timeRate);
-            _achievementsImage.color = new Color(imageColor.r, imageColor.g, imageColor.b, alpha);
-            _achievementsText.color = new Color(textColor.r, textColor.g, textColor.b, alpha);
+            imageColor.a = alpha;
+            textColor.a = alpha;
+            _achievementsImage.color = imageColor;
+            _achievementsInfoText.color = textColor;
+            _achievementsDetailText.color = textColor;
             timer += manager.GetTimeScale();
             yield return null;
         }
+
+        HideAchievement();
     }
 }

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 public class UnlockAchievementMessage : NotifyMessage
@@ -17,6 +17,8 @@ public class ItemController : Subject
     public float fadeOutTime = 30.0f;
 
     private float _EulerY = 0.0f;
+    private bool _Destory = false;
+
     private SampleManager manager => SampleManager.GetInstance();
     // Update is called once per frame
     void Update()
@@ -41,7 +43,11 @@ public class ItemController : Subject
     {
         if (other.CompareTag("Player"))
         {
-            StartCoroutine(CoDestory());
+            if(!_Destory)
+            {
+                _Destory = true;
+                StartCoroutine(CoDestory());
+            }
         }
     }
 

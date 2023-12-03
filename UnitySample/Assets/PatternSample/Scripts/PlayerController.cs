@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
@@ -245,7 +245,7 @@ public class PlayerControllerInspector : Editor
 
     void OnEnable()
     {
-        // AnyClassNameƒRƒ“ƒ|[ƒlƒ“ƒg‚ğæ“¾
+        // AnyClassNameã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’å–å¾—
         _controller = target as PlayerController;
     }
 
