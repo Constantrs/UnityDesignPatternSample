@@ -19,7 +19,7 @@ namespace DesignPatternSample
         public Text _achievementsDetailText;
 
         public Text _pauseText;
-        private SampleManager manager => SampleManager.GetInstance();
+        private SampleSceneManager manager => SampleSceneManager.GetInstance();
 
         /// <summary>
         /// 一時停止UI表示
@@ -75,14 +75,14 @@ namespace DesignPatternSample
                 _achievementsImage.color = imageColor;
                 _achievementsInfoText.color = textColor;
                 _achievementsDetailText.color = textColor;
-                timer += manager.GetTimeScale();
+                timer += manager.GetTimeMultiplier();
                 yield return null;
             }
             timer = 0.0f;
 
             while (timer < ACHIEVEMNT_ACTIVETIME && manager)
             {
-                timer += manager.GetTimeScale();
+                timer += manager.GetTimeMultiplier();
                 yield return null;
             }
             timer = 0.0f;
@@ -96,7 +96,7 @@ namespace DesignPatternSample
                 _achievementsImage.color = imageColor;
                 _achievementsInfoText.color = textColor;
                 _achievementsDetailText.color = textColor;
-                timer += manager.GetTimeScale();
+                timer += manager.GetTimeMultiplier();
                 yield return null;
             }
 

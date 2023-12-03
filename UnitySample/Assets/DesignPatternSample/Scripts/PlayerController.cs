@@ -19,7 +19,6 @@ namespace DesignPatternSample
  
         public CursorController cursor;
         public CharacterParameters parameters;
-
         private SampleSceneManager manager => SampleSceneManager.GetInstance();
 
         private Coroutine _Process = null;
