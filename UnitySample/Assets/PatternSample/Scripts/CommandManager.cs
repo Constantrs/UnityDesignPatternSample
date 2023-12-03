@@ -14,12 +14,12 @@ public class MoveCommand : ICommand
 {
     private const string CommandName = "MoveCommand";
 
-    private PlayerController _Controller;
+    private PlayerControllerAdv _Controller;
     private Vector3 _StartPos;
     private Vector3 _TartgetPos;
     private Quaternion _StartRot;
 
-    public MoveCommand(PlayerController controller, Vector3 startPos, Vector3 targetPos, Quaternion startRot)
+    public MoveCommand(PlayerControllerAdv controller, Vector3 startPos, Vector3 targetPos, Quaternion startRot)
     {
         _Controller = controller;
         _StartPos = startPos;

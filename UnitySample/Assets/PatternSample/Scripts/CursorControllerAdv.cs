@@ -2,7 +2,7 @@
 
 
 [System.Serializable]
-public class RaycastData
+public class RaycastDataAdv
 {
     public Camera camera;
     public LayerMask layerMask;
@@ -10,22 +10,22 @@ public class RaycastData
     public Vector3 effectOffset;
 }
 
-public class RaycastResult
+public class RaycastResultAdv
 {
     public bool hitted = false;
     public Vector3 targetPos = Vector3.zero;
 }
 
 [System.Serializable]
-public class CursorController
+public class CursorControllerAdv
 {
-    public RaycastData raycastData = new RaycastData();
+    public RaycastDataAdv raycastData = new RaycastDataAdv();
     public GameObject effect;
     public Material clickMat;
     public Material forceClickMat;
 
     private ParticleSystem _particle = null;
-    private RaycastResult _result = new RaycastResult();
+    private RaycastResultAdv _result = new RaycastResultAdv();
 
     private void Awake()
     {
@@ -82,7 +82,7 @@ public class CursorController
         }
     }
 
-    public RaycastResult GetRaycastResult()
+    public RaycastResultAdv GetRaycastResult()
     {
         return _result;
     }

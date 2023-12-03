@@ -20,9 +20,9 @@ public class CharacterParameters
     public float moveSpeed = 0.5f;
 }
 
-public class PlayerController : Subject
+public class PlayerControllerAdv : Subject
 {
-    public CursorController cursor;
+    public CursorControllerAdv cursor;
     public CharacterParameters parameters;
 
     private Coroutine _Process = null;
@@ -74,7 +74,7 @@ public class PlayerController : Subject
                 else if (input.leftClick || input.rightClick)
                 {
                     cursor.CalculateRaycast();
-                    RaycastResult result = cursor.GetRaycastResult();
+                    RaycastResultAdv result = cursor.GetRaycastResult();
                     if (result.hitted)
                     {
                         Vector3 targetPos = new Vector3(result.targetPos.x, result.targetPos.y, result.targetPos.z);
@@ -237,16 +237,16 @@ public class PlayerController : Subject
 }
 
 #if UNITY_EDITOR
-[CustomEditor(typeof(PlayerController))]
+[CustomEditor(typeof(PlayerControllerAdv))]
 public class PlayerControllerInspector : Editor
 {
-    private PlayerController _controller = null;
+    private PlayerControllerAdv _controller = null;
     private bool _foldout = false;
 
     void OnEnable()
     {
         // AnyClassNameコンポーネントを取得
-        _controller = target as PlayerController;
+        _controller = target as PlayerControllerAdv;
     }
 
     public override void OnInspectorGUI()

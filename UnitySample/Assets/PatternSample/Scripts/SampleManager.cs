@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+
 public class SampleManager : MonoBehaviour
 {
     // Start is called before the first frame update
@@ -17,7 +18,7 @@ public class SampleManager : MonoBehaviour
     public Framerate fpsmode = Framerate.FORCE_60;
     public bool pause = false;
 
-    private InputManager _Input = null;
+    private InputManagerAdv _Input = null;
 
     private void Awake()
     {
@@ -27,7 +28,7 @@ public class SampleManager : MonoBehaviour
         }
         else
         {
-            if(Initialize())
+            if (Initialize())
             {
                 _Instance = this;
             }
@@ -56,11 +57,11 @@ public class SampleManager : MonoBehaviour
                 break;
         }
 
-        _Input = new InputManager();
+        _Input = new InputManagerAdv();
         return true;
     }
 
-    public InputManager GetPlayerInput()
+    public InputManagerAdv GetPlayerInput()
     {
         return _Input;
     }

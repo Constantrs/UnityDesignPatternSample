@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-public class InputManager
+public class InputManagerAdv
 {
     public float horizontal { get; private set; }
     public float vertical { get; private set; }
@@ -14,7 +14,7 @@ public class InputManager
 
     private bool _Enable = false;
 
-    public InputManager()
+    public InputManagerAdv()
     {
         _Enable = true;
     }

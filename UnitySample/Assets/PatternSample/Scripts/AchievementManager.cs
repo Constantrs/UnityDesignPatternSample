@@ -19,7 +19,7 @@ public class AchievementManager : Subject, IObserver
         {
             for(int i = 0; i < objests.Length; i++)
             {
-                var itemController = objests[i].GetComponent<ItemController>();
+                var itemController = objests[i].GetComponent<ItemControllerAdv>();
                 if(itemController != null)
                 {
                     _ItemList.Add(itemController);

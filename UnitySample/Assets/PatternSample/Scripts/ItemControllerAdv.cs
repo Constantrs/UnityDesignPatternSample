@@ -11,7 +11,7 @@ public class UnlockAchievementMessage : NotifyMessage
     }
 }
 
-public class ItemController : Subject
+public class ItemControllerAdv : Subject
 {
     public float rotateSpeed = 1.0f;
     public float fadeOutTime = 30.0f;

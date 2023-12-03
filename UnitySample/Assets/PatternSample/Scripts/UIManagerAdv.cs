@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 
-public class UIManager : MonoBehaviour, IObserver
+public class UIManagerAdv : MonoBehaviour, IObserver
 {
     private const float ACHIEVEMNT_FADEINTIME = 60.0f;
     private const float ACHIEVEMNT_ACTIVETIME = 120.0f;
@@ -23,7 +23,7 @@ public class UIManager : MonoBehaviour, IObserver
     private void Awake()
     {
         var player = GameObject.FindGameObjectWithTag("Player");
-        var playerController = player.GetComponent<PlayerController>();
+        var playerController = player.GetComponent<PlayerControllerAdv>();
         if (playerController != null)
         {
             _player = playerController;
@@ -82,7 +82,6 @@ public class UIManager : MonoBehaviour, IObserver
     {
         _pauseText.enabled = pause;
     }
-
 
     private void ShowAchievement(string text)
     {
