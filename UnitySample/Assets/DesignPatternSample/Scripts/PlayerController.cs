@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
+using TMPro;
 
 namespace DesignPatternSample
 {
@@ -11,6 +12,26 @@ namespace DesignPatternSample
     {
         // キャラ移動速度
         public float moveSpeed = 0.5f;
+    }
+
+    public class MoveCommand : ICommand
+    {
+        private PlayerController _Controller;
+        private Vector3 _StartPos;
+        private Vector3 _TartgetPos;
+
+        public MoveCommand(PlayerController controller, Vector3 startPos, Vector3 targetPos)
+        {
+            _Controller = controller;
+            _StartPos = startPos;
+            _TartgetPos = targetPos;
+        }
+
+        public override void Execute()
+        {
+            _Controller.StartMove(_TartgetPos);
+        }
+
     }
 
     public class PlayerController : MonoBehaviour
@@ -25,10 +46,10 @@ namespace DesignPatternSample
         private bool isProcessing => _Process != null;
 
         private Vector3 _defaultPostion = Vector3.zero;
-        private Vector3 _startPosition = Vector3.zero;
-        private Vector3 _targetPosition = Vector3.zero;
 
         private Animator animator;
+
+        private CommandManager _commandManager = new CommandManager();
 
         static PlayerController()
         {
@@ -75,7 +96,9 @@ namespace DesignPatternSample
                             if (input.leftClick)
                             {
                                 cursor.PlayClickEffct(true);
-                                StartMove(result.hitPosition);
+                                ICommand moveCommand = new MoveCommand(this, transform.position, result.hitPosition);
+                                _commandManager.AddCommand(moveCommand);
+                                //StartMove(result.hitPosition);
                             }
                             // 待機状態だけ移動
                             else
@@ -83,7 +106,9 @@ namespace DesignPatternSample
                                 cursor.PlayClickEffct(false);
                                 if (!isProcessing)
                                 {
-                                    StartMove(result.hitPosition);
+                                    ICommand moveCommand = new MoveCommand(this, transform.position, result.hitPosition);
+                                    _commandManager.AddCommand(moveCommand);
+                                    //StartMove(result.hitPosition);
                                 }
                             }
                             Debug.Log($"Cursor Position : {result.hitPosition}");
@@ -99,9 +124,7 @@ namespace DesignPatternSample
         public Coroutine StartMove(Vector3 targetPosition)
         {
             StopMove();
-            _startPosition = transform.position;
-            _targetPosition = targetPosition;
-            _Process = StartCoroutine(CoMove());
+            _Process = StartCoroutine(CoMove(targetPosition));
             return _Process;
         }
 
@@ -130,14 +153,15 @@ namespace DesignPatternSample
         /// <summary>
         /// (コルーチン)プレイヤー移動
         /// </summary>
-        IEnumerator CoMove()
+        IEnumerator CoMove(Vector3 targetPosition)
         {
             bool moveEnd = false;
-            float moveDistance = (_targetPosition - _startPosition).magnitude;
+            Vector3 startPosition = transform.position;
+            float moveDistance = (targetPosition - startPosition).magnitude;
             float moveTime = moveDistance / parameters.moveSpeed;
             float timer = 0.0f;
 
-            transform.LookAt(_targetPosition);
+            transform.LookAt(targetPosition);
             animator.SetBool(_MoveParamID, true);
             while (!moveEnd)
             {
@@ -148,13 +172,13 @@ namespace DesignPatternSample
 
                 if (timer >= moveTime)
                 {
-                    transform.position = _targetPosition;
+                    transform.position = targetPosition;
                     moveEnd = true;
                 }
                 else
                 {
                     float timeRate = Mathf.Clamp(timer / moveTime, 0.0f, 1.0f);
-                    transform.position = Vector3.Lerp(_startPosition, _targetPosition, timeRate);
+                    transform.position = Vector3.Lerp(startPosition, targetPosition, timeRate);
                     timer += manager.GetTimeMultiplier();
                 }
                 yield return null;
