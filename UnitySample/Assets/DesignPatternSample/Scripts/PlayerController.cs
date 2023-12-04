@@ -2,7 +2,6 @@
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
-using TMPro;
 
 namespace DesignPatternSample
 {
@@ -50,7 +49,18 @@ namespace DesignPatternSample
         }
     }
 
-    public class PlayerController : MonoBehaviour
+    public class PauseMessage : NotifyMessage
+    {
+        public bool paused;
+
+        public PauseMessage(bool pause)
+        {
+            this.paused = pause;
+        }
+    }
+
+
+    public class PlayerController : Subject
     {
         private static readonly int _MoveParamID;
  
@@ -95,6 +105,7 @@ namespace DesignPatternSample
                     bool nextPauseFlag = !manager.GetPauseFlag();
                     animator.speed = nextPauseFlag ? 0.0f : 1.0f;
                     manager.SetPauseFlag(nextPauseFlag);
+                    NotifyOvservers(new PauseMessage(nextPauseFlag));
                 }
 
                 if (input.undo)

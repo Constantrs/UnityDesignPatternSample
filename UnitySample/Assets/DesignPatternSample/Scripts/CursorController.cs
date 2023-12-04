@@ -15,7 +15,6 @@ namespace DesignPatternSample
         private ParticleSystemRenderer _particleRenderer = null;
         private RaycastResult _result = new RaycastResult();
 
-        // Start is called before the first frame update
         private void Awake()
         {
             if (clickEffect != null)
@@ -27,15 +26,6 @@ namespace DesignPatternSample
                 {
                     _initialized = true;
                 }
-            }
-        }
-
-        // Update is called once per frame
-        private void Update()
-        {
-            if(!_initialized)
-            {
-                return;
             }
         }
 

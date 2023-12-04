@@ -17,7 +17,6 @@ namespace DesignPatternSample
         private static SampleSceneManager _Instance;
 
         public FramerateMode fpsmode = FramerateMode.FORCE_60;
-        public UIManager uiManager;
 
         private bool _Pause = false;
         private InputManager _Input = null;
@@ -91,10 +90,6 @@ namespace DesignPatternSample
         public void SetPauseFlag(bool pause)
         {
             _Pause = pause;
-            if (uiManager != null)
-            {
-                uiManager.ShowPause(_Pause);
-            }
         }
 
         /// <summary>

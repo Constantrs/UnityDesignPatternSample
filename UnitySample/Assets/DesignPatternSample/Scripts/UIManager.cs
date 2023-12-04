@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace DesignPatternSample
 {
-    public class UIManager : MonoBehaviour
+    public class UIManager : MonoBehaviour, IObserver
     {
         // 実績フェードイン時間
         private const float ACHIEVEMNT_FADEINTIME = 60.0f;
@@ -19,7 +19,33 @@ namespace DesignPatternSample
         public Text _achievementsDetailText;
 
         public Text _pauseText;
+
+        private Subject _player;
+
         private SampleSceneManager manager => SampleSceneManager.GetInstance();
+
+        private void Awake()
+        {
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                var playerController = player.GetComponent<PlayerController>();
+                if (playerController != null)
+                {
+                    _player = playerController;
+                }
+            }
+        }
+
+        private void OnEnable()
+        {
+            _player?.AddObserver(this);
+        }
+
+        private void OnDisable()
+        {
+            _player?.RemoveOvserver(this);
+        }
 
         /// <summary>
         /// 一時停止UI表示
@@ -51,6 +77,25 @@ namespace DesignPatternSample
             _achievementsDetailText.enabled = false;
             _achievementsDetailText.text = "";
             StopCoroutine(CoShowAchievement());
+        }
+
+        /// <summary>
+        /// 観測者に通知メッセージを送信
+        /// </summary>
+        public void OnNotify(NotifyMessage message)
+        {
+            if (message != null)
+            {
+                Type messageType = message.GetType();
+                if (messageType == typeof(PauseMessage))
+                {
+                    var pauseMessage = message as PauseMessage;
+                    if (pauseMessage != null)
+                    {
+                        ShowPause(pauseMessage.paused);
+                    }
+                }
+            }
         }
 
         /// <summary>
