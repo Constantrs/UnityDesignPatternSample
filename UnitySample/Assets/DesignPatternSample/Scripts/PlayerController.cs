@@ -21,12 +21,14 @@ namespace DesignPatternSample
         private PlayerController _Controller;
         private Vector3 _StartPos;
         private Vector3 _TartgetPos;
+        private Quaternion _StartRot;
 
-        public MoveCommand(PlayerController controller, Vector3 startPos, Vector3 targetPos)
+        public MoveCommand(PlayerController controller, Vector3 startPos, Vector3 targetPos, Quaternion startRot)
         {
             _Controller = controller;
             _StartPos = startPos;
             _TartgetPos = targetPos;
+            _StartRot = startRot;
         }
 
         public override void Execute()
@@ -36,7 +38,7 @@ namespace DesignPatternSample
 
         public override void Undo()
         {
-            _Controller.StartMove(_StartPos);
+            _Controller.StartReverseMove(_StartPos, _StartRot);
         }
 
         public override string GetCommandName()
@@ -58,8 +60,6 @@ namespace DesignPatternSample
 
         private Coroutine _Process = null;
         private bool isProcessing => _Process != null;
-
-        private Vector3 _defaultPostion = Vector3.zero;
 
         private Animator animator;
 
@@ -114,7 +114,7 @@ namespace DesignPatternSample
                             if (input.leftClick)
                             {
                                 cursor.PlayClickEffct(true);
-                                ICommand moveCommand = new MoveCommand(this, transform.position, result.hitPosition);
+                                ICommand moveCommand = new MoveCommand(this, transform.position, result.hitPosition, transform.rotation);
                                 _commandManager.AddCommand(moveCommand);
                                 //StartMove(result.hitPosition);
                             }
@@ -124,7 +124,7 @@ namespace DesignPatternSample
                                 cursor.PlayClickEffct(false);
                                 if (!isProcessing)
                                 {
-                                    ICommand moveCommand = new MoveCommand(this, transform.position, result.hitPosition);
+                                    ICommand moveCommand = new MoveCommand(this, transform.position, result.hitPosition, transform.rotation);
                                     _commandManager.AddCommand(moveCommand);
                                     //StartMove(result.hitPosition);
                                 }
@@ -147,6 +147,17 @@ namespace DesignPatternSample
         }
 
         /// <summary>
+        /// プレイヤー逆行移動開始
+        /// </summary>
+        public Coroutine StartReverseMove(Vector3 originalPosition, Quaternion originalRotation)
+        {
+            StopMove();
+            _Process = StartCoroutine(CoReverseMove(originalPosition, originalRotation));
+            return _Process;
+        }
+
+
+        /// <summary>
         /// プレイヤー移動停止
         /// </summary>
         public void StopMove()
@@ -165,7 +176,6 @@ namespace DesignPatternSample
         private void Initialize()
         {
             animator = GetComponent<Animator>();
-            _defaultPostion = transform.position;
         }
 
         /// <summary>
@@ -201,6 +211,44 @@ namespace DesignPatternSample
                 }
                 yield return null;
             }
+            animator.SetBool(_MoveParamID, false);
+            _Process = null;
+        }
+
+        /// <summary>
+        /// (コルーチン)逆行移動開始
+        /// </summary>
+        IEnumerator CoReverseMove(Vector3 originalPosition, Quaternion originalRotation)
+        {
+            bool moveEnd = false;
+            Vector3 startPosition = transform.position;
+            float moveDistance = (originalPosition - startPosition).magnitude;
+            float moveTime = moveDistance / parameters.moveSpeed;
+            float timer = 0.0f;
+
+            animator.SetBool(_MoveParamID, true);
+
+            while (!moveEnd)
+            {
+                if (manager == null)
+                {
+                    moveEnd = true;
+                }
+
+                if (timer >= moveTime)
+                {
+                    transform.position = originalPosition;
+                    moveEnd = true;
+                }
+                else
+                {
+                    float timeRate = Mathf.Clamp(timer / moveTime, 0.0f, 1.0f);
+                    transform.position = Vector3.Lerp(startPosition, originalPosition, timeRate);
+                    timer += manager.GetTimeMultiplier();
+                }
+                yield return null;
+            }
+            transform.rotation = originalRotation;
             animator.SetBool(_MoveParamID, false);
             _Process = null;
         }
