@@ -34,6 +34,11 @@ namespace DesignPatternSample
             _Controller.StartMove(_TartgetPos);
         }
 
+        public override void Undo()
+        {
+            _Controller.StartMove(_StartPos);
+        }
+
         public override string GetCommandName()
         {
             string str = CommandName;
@@ -92,7 +97,11 @@ namespace DesignPatternSample
                     manager.SetPauseFlag(nextPauseFlag);
                 }
 
-                if (manager.GetTimeMultiplier() != 0.0f)
+                if (input.undo)
+                {
+                    _commandManager.UndoCommand();
+                }
+                else if (manager.GetTimeMultiplier() != 0.0f)
                 {
                     // クリック座標へ移動
                     if (input.leftClick || input.rightClick)

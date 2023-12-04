@@ -8,6 +8,8 @@ namespace DesignPatternSample
     {
         public abstract void Execute();
 
+        public abstract void Undo();
+
         public abstract string GetCommandName();
     }
 
@@ -28,6 +30,18 @@ namespace DesignPatternSample
             // 追加同時に実行
             command.Execute();
             _commandList.Push(command);
+        }
+
+        /// <summary>
+        /// コマンド元に戻す
+        /// </summary>
+        public void UndoCommand()
+        {
+            if (_commandList.Count > 0)
+            {
+                ICommand lastCommand = _commandList.Pop();
+                lastCommand.Undo();
+            }
         }
 
         /// <summary>
