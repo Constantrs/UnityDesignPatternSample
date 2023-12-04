@@ -16,6 +16,8 @@ namespace DesignPatternSample
 
     public class MoveCommand : ICommand
     {
+        private const string CommandName = "MoveCommand";
+
         private PlayerController _Controller;
         private Vector3 _StartPos;
         private Vector3 _TartgetPos;
@@ -32,6 +34,13 @@ namespace DesignPatternSample
             _Controller.StartMove(_TartgetPos);
         }
 
+        public override string GetCommandName()
+        {
+            string str = CommandName;
+            str += $" From : {_StartPos} ";
+            str += $" To : {_TartgetPos} ";
+            return str;
+        }
     }
 
     public class PlayerController : MonoBehaviour
@@ -186,5 +195,50 @@ namespace DesignPatternSample
             animator.SetBool(_MoveParamID, false);
             _Process = null;
         }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// コマンド名称表示
+        /// </summary>
+        public void DisplayCommandsName()
+        {
+            List<string> commands = _commandManager.GetCommandNameList();
+
+            foreach (string command in commands)
+            {
+                EditorGUILayout.LabelField(command);
+            }
+        }
+#endif
     }
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(PlayerController))]
+    public class PlayerControllerInspector : Editor
+    {
+        private PlayerController _controller = null;
+        private bool _foldout = false;
+
+        void OnEnable()
+        {
+            _controller = target as PlayerController;
+        }
+
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+
+            if (_controller != null)
+            {
+                _foldout = EditorGUILayout.Foldout(_foldout, "Command List");
+
+                if (_foldout)
+                {
+                    EditorGUI.indentLevel++;
+                    _controller.DisplayCommandsName();
+                }
+            }
+        }
+    }
+#endif
 }

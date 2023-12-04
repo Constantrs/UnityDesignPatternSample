@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,6 +7,8 @@ namespace DesignPatternSample
     public abstract class ICommand
     {
         public abstract void Execute();
+
+        public abstract string GetCommandName();
     }
 
     public class CommandManager
@@ -19,13 +21,26 @@ namespace DesignPatternSample
         }
 
         /// <summary>
-        /// ƒRƒ}ƒ“ƒh’Ç‰Á
+        /// ã‚³ãƒãƒ³ãƒ‰è¿½åŠ 
         /// </summary>
         public void AddCommand(ICommand command)
         {
-            // ’Ç‰Á“¯‚ÉÀs
+            // è¿½åŠ åŒæ™‚ã«å®Ÿè¡Œ
             command.Execute();
             _commandList.Push(command);
+        }
+
+        /// <summary>
+        /// ã‚³ãƒãƒ³ãƒ‰æ–‡å­—åˆ—å–å¾—
+        /// </summary>
+        public List<string> GetCommandNameList()
+        {
+            List<string> list = new List<string>();
+            foreach (var command in _commandList)
+            {
+                list.Add(command.GetCommandName());
+            }
+            return list;
         }
     }
 
