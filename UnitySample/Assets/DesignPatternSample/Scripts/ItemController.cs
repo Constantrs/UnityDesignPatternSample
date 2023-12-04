@@ -3,7 +3,17 @@ using UnityEngine;
 
 namespace DesignPatternSample
 {
-    public class ItemController : MonoBehaviour
+    public class UnlockAchievementMessage : NotifyMessage
+    {
+        public int achievementId;
+
+        public UnlockAchievementMessage(int achievementId)
+        {
+            this.achievementId = achievementId;
+        }
+    }
+
+    public class ItemController : Subject
     {
         public float rotateSpeed = 1.0f;
         public float fadeOutTime = 30.0f;
@@ -54,7 +64,7 @@ namespace DesignPatternSample
             bool fadeOutEnd = false;
             float timer = 0.0f;
             Vector3 originalScale = transform.localScale;
-
+            NotifyOvservers(new UnlockAchievementMessage(0));
             while (!fadeOutEnd)
             {
                 if (manager == null)

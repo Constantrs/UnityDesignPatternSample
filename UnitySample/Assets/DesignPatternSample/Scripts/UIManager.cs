@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEngine.EventSystems.EventTrigger;
 
 namespace DesignPatternSample
 {
@@ -21,6 +22,7 @@ namespace DesignPatternSample
         public Text _pauseText;
 
         private Subject _player;
+        private Subject _achievementManager;
 
         private SampleSceneManager manager => SampleSceneManager.GetInstance();
 
@@ -35,16 +37,42 @@ namespace DesignPatternSample
                     _player = playerController;
                 }
             }
+
+            var manager = GameObject.FindGameObjectWithTag("Manager");
+            if (manager != null)
+            {
+                var achievementManager = manager.GetComponent<AchievementManager>();
+                if (achievementManager != null)
+                {
+                    _achievementManager = achievementManager;
+                }
+            }
         }
 
         private void OnEnable()
         {
-            _player?.AddObserver(this);
+            if(_player)
+            {
+                _player.AddObserver(this);
+            }
+
+            if(_achievementManager)
+            {
+                _achievementManager.AddObserver(this);
+            }
         }
 
         private void OnDisable()
         {
-            _player?.RemoveOvserver(this);
+            if (_player)
+            {
+                _player.RemoveOvserver(this);
+            }
+
+            if (_achievementManager)
+            {
+                _achievementManager.RemoveOvserver(this);
+            }
         }
 
         /// <summary>
@@ -93,6 +121,19 @@ namespace DesignPatternSample
                     if (pauseMessage != null)
                     {
                         ShowPause(pauseMessage.paused);
+                    }
+                }
+                else if (messageType == typeof(UnlockAchievementMessage))
+                {
+                    var achievementMessage = message as UnlockAchievementMessage;
+                    if (achievementMessage != null)
+                    {
+                        switch (achievementMessage.achievementId)
+                        {
+                            case 0:
+                                ShowAchievement("アイテムコレクター");
+                                break;
+                        }
                     }
                 }
             }
