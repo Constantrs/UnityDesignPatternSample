@@ -28,7 +28,6 @@ namespace TaskSample
 
             }
         }
-
         private void OnDestroy()
         {
             if( instance != this )
