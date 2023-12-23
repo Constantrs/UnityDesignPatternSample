@@ -11,12 +11,17 @@ namespace TaskSample
         public FramerateMode mode;
         public bool pause;
 
+        public GameObject root;
+
+        private WorldManager _worldManager = new WorldManager();
+
         private void Awake()
         {
             if(instance == null )
             {
                 instance = this;
                 FrameManager.SetFramerateMode(mode);
+                _worldManager.Initialize(root);
             }
             else
             {

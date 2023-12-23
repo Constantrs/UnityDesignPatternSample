@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TaskSample;
 using UnityEngine;
 
 namespace DesignPatternSample
