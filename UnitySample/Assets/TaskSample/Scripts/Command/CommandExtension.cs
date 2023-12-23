@@ -6,7 +6,7 @@ namespace TaskSample
 {
     namespace Command
     {
-        public class CommandExtension
+        public abstract class CommandExtension
         {
             public static void Extend(CommandDatabase database)
             {

@@ -11,13 +11,15 @@ namespace TaskSample
         {
             private static CommandManager instance;
 
-            private CommandDatabase commandDatabase = new CommandDatabase();
+            private CommandDatabase _Database = new CommandDatabase();
 
             private void Awake()
             {
                 if (instance == null)
                 {
                     instance = this;
+
+                    CommandExtension_Movement.Extend(_Database);
                 }
                 else
                 {
