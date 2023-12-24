@@ -5,6 +5,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using static UnityEditor.Searcher.Searcher.AnalyticsEvent;
+using TaskSample.Command;
 
 namespace TaskSample
 {
@@ -21,8 +22,10 @@ namespace TaskSample
         public enum State
         {
             Uninitialized,
-            Running,
-            Exit,
+            PushCommand,
+            ExecuteCommand,
+            Wait,
+            Exit
         }
 
         private static MainSystem instance;
@@ -54,7 +57,7 @@ namespace TaskSample
                 _TextManager.Initialize(this);
 
                 _cts = this.GetCancellationTokenOnDestroy();
-                state = State.Running;
+                state = State.PushCommand;
 
                 OnLastEarlyUpdate().Forget();
                 OnPostLateUpdate().Forget();
@@ -69,7 +72,7 @@ namespace TaskSample
             NotifyOvservers(EventType.End);  
             _Observers.Clear();
 
-            if (instance != this)
+            if (instance == this)
             {
                 instance = null;
             }
@@ -102,6 +105,54 @@ namespace TaskSample
             }
         }
 
+        public void Pause()
+        {
+            SetPause(!_Pause);
+        }
+
+        public async UniTask OnLastEarlyUpdate()
+        {
+            while (state != State.Exit)
+            {
+                await UniTask.Yield(PlayerLoopTiming.LastEarlyUpdate, _cts);
+            }
+        }
+
+        public async UniTask OnPostLateUpdate()
+        {
+            while (state != State.Exit)
+            {
+                if(state == State.ExecuteCommand) 
+                {
+                    if (Input.GetKeyDown(KeyCode.Space))
+                    {
+                        NotifyOvservers(EventType.Input);
+                    }
+
+                    WaitCommand();
+                }
+
+                await UniTask.Yield(PlayerLoopTiming.PostLateUpdate, _cts);
+            }
+        }
+
+        public void PlayText()
+        {
+            if (state != State.PushCommand)
+            {
+                return;
+            }
+
+            var commandManager = CommandManager.GetInstance();
+            if (commandManager != null)
+            {
+                object[] str = { (object)text };
+                commandManager.PushProcess("setmessage", str);
+                commandManager.Execute().Forget();
+                state = State.ExecuteCommand;
+            }
+        }
+
         public void SetPause(bool pause)
         {
             _Pause = pause;
@@ -115,32 +166,33 @@ namespace TaskSample
             }
         }
 
-        public void PlayText()
+        public void RandomWait()
         {
-            _TextManager.SetText(text);
-        }
-        public void Pause()
-        {
-            SetPause(!_Pause);
-        }
-
-        public async UniTask OnLastEarlyUpdate()
-        {
-            while (state != State.Exit)
+            if (state != State.PushCommand)
             {
-                if(Input.GetKeyDown(KeyCode.Space))
-                {
-                    NotifyOvservers(EventType.Input);
-                }
-                await UniTask.Yield(PlayerLoopTiming.LastEarlyUpdate, _cts);
+                return;
+            }
+
+            var commandManager = CommandManager.GetInstance();
+            if (commandManager != null)
+            {
+                commandManager.PushProcess("waitsecond", null);
+                commandManager.Execute().Forget();
+                state = State.ExecuteCommand;
             }
         }
 
-        public async UniTask OnPostLateUpdate()
+        public void WaitCommand()
         {
-            while (state != State.Exit)
+            var commandManager = CommandManager.GetInstance();
+            if (commandManager == null)
             {
-                await UniTask.Yield(PlayerLoopTiming.PostLateUpdate, _cts);
+                return;    
+            }
+
+            if(!commandManager.IsExecuting())
+            {
+                state = State.Wait;
             }
         }
 

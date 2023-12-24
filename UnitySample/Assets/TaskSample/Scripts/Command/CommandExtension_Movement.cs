@@ -12,7 +12,20 @@ namespace TaskSample
             new public static void Extend(CommandDatabase database)
             {
                 // Add action with no parameters
-                //database.AddCommand("wait", new Func<string, IEnumerator>(CoWait));
+                database.AddCommand("waitsecond", new Func<object[], CommandProcess>(WaitSecond));
+            }
+
+            public static CommandProcess WaitSecond(object[] objects)
+            {
+                int second = UnityEngine.Random.Range(1, 11);
+                var manager = MainSystem.GetInstance();
+                if (manager != null)
+                {
+                    UniTaskCommandProcess<int> commandProcess = new UniTaskCommandProcess<int>(manager.GetWorldManager().WaitSecond, second);
+                    return commandProcess;
+                }
+
+                return null;
             }
         }
     }

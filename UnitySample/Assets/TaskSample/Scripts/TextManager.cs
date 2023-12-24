@@ -2,6 +2,7 @@ using Cysharp.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using TMPro;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
@@ -36,23 +37,19 @@ namespace TaskSample
             }
         }
 
-        public void SetText(string text)
+        public bool IsRunning()
         {
-            if(_Running)
-            {
-                return;
-            }
+            return _Running;
+        }
+
+        public async UniTask SetMessage(string text)
+        {
+            Debug.Log("Text Start");
 
             _Text.maxVisibleCharacters = 0;
             _Text.text = text;
             _CurrentTextSpeed = _TextNormalSpeed;
             _Running = true;
-            UpdateText().Forget();
-        }
-
-        public async UniTask UpdateText()
-        {
-            Debug.Log("Text Start");
 
             float timer = 0.0f;
             int textLength = _Text.text.Length;

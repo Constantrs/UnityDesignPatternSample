@@ -9,18 +9,17 @@ namespace TaskSample
     {
         public class CommandDatabase
         {
-            //private Dictionary<string, Func<object[], CommandExtension>> commandDatabase = new Dictionary<string, Func<object[], CommandExtension>>();
-            private Dictionary<string, Delegate> _Database = new Dictionary<string, Delegate>();
+            private Dictionary<string, Func<object[], CommandProcess>> _Database = new Dictionary<string, Func<object[], CommandProcess>>();
 
             public bool HasCommand(string commandName) => _Database.ContainsKey(commandName);
 
-            public void AddCommand(string commandName, Delegate command)
+            public void AddCommand(string commandName, Func<object[], CommandProcess> func)
             {
                 commandName = commandName.ToLower();
 
                 if (!_Database.ContainsKey(commandName))
                 {
-                    _Database.Add(commandName, command);
+                    _Database.Add(commandName, func);
                 }
                 else
                 {
@@ -28,7 +27,7 @@ namespace TaskSample
                 }
             }
 
-            public Delegate GetCommand(string commandName)
+            public Func<object[], CommandProcess> GetCommand(string commandName)
             {
                 commandName = commandName.ToLower();
 

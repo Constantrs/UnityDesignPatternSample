@@ -29,7 +29,7 @@ namespace TaskSample
                     }
                     Debug.Log(string.Format("Count : {0}", _ObjectMap.Count));
                     _Running = true;
-                    Update().Forget();
+                    //Update().Forget();
                 }
                 main.AddObserver(this);
             }
@@ -43,6 +43,15 @@ namespace TaskSample
             }
 
             Debug.Log("WorldManager End");
+        }
+
+        public async UniTask WaitSecond(int second)
+        {
+            int ms = second * 1000;
+            string waitStartMessage = string.Format("Wait Start : {0} ms", ms);
+            Debug.Log(waitStartMessage);
+            await UniTask.Delay(ms);
+            Debug.Log("Wait End");
         }
 
         protected override void NotifyEvent(EventType eventType)
