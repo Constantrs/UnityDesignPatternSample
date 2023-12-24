@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using UnityEditorInternal;
-using DesignPatternSample;
+using TMPro;
 using static UnityEditor.Searcher.Searcher.AnalyticsEvent;
 
 namespace TaskSample
@@ -12,16 +11,12 @@ namespace TaskSample
     public enum EventType
     {
         Input,
+        PauseStart,
+        PauseEnd,
         End
     }
 
-    public interface IObserver
-    {
-        public void OnNotify(EventType eventtype);
-    }
-
-
-    public class MainManager : MonoBehaviour
+    public class MainSystem : MonoBehaviour
     {
         public enum State
         {
@@ -30,17 +25,23 @@ namespace TaskSample
             Exit,
         }
 
-        private static MainManager instance;
+        private static MainSystem instance;
 
         public FramerateMode mode;
         public State state = State.Uninitialized;
-        public bool pause;
 
-        public GameObject root;
+        [TextArea]
+        public string text;
 
-        private WorldManager _worldManager = new WorldManager();
-        private List<IObserver> _observers = new List<IObserver>();
+        public GameObject worldRoot;
+        public TMP_Text UIText;
+
+        private List<IObserver> _Observers = new List<IObserver>();
+        private WorldManager _WorldManager = new WorldManager();
+        private TextManager _TextManager = new TextManager();
+
         private CancellationToken _cts;
+        private bool _Pause = false;
 
         private void Awake()
         {
@@ -48,7 +49,9 @@ namespace TaskSample
             {
                 instance = this;
                 FrameManager.SetFramerateMode(mode);
-                _worldManager.Initialize(this, root);
+
+                _WorldManager.Initialize(this);
+                _TextManager.Initialize(this);
 
                 _cts = this.GetCancellationTokenOnDestroy();
                 state = State.Running;
@@ -63,8 +66,8 @@ namespace TaskSample
         }
         private void OnDestroy()
         {
-            NotifyOvservers(EventType.End);
-            _observers.Clear();
+            NotifyOvservers(EventType.End);  
+            _Observers.Clear();
 
             if (instance != this)
             {
@@ -72,14 +75,24 @@ namespace TaskSample
             }
         }
 
-        public static MainManager GetInstance()
+        public static MainSystem GetInstance()
         {
             return instance;
         }
 
+        public WorldManager GetWorldManager()
+        {
+            return _WorldManager;
+        }
+
+        public TextManager GetTextManager()
+        {
+            return _TextManager;
+        }
+
         public float GetTimeMultiplier()
         {
-            if (pause)
+            if (_Pause)
             {
                 return 0.0f;
             }
@@ -89,15 +102,36 @@ namespace TaskSample
             }
         }
 
-        public void TestMoveObject()
+        public void SetPause(bool pause)
         {
-            Debug.Log("MoveCharacter");
+            _Pause = pause;
+            if (pause)
+            {
+                NotifyOvservers(EventType.PauseStart);
+            }
+            else
+            {
+                NotifyOvservers(EventType.PauseEnd);
+            }
+        }
+
+        public void PlayText()
+        {
+            _TextManager.SetText(text);
+        }
+        public void Pause()
+        {
+            SetPause(!_Pause);
         }
 
         public async UniTask OnLastEarlyUpdate()
         {
-            while (state != State.Exit) 
+            while (state != State.Exit)
             {
+                if(Input.GetKeyDown(KeyCode.Space))
+                {
+                    NotifyOvservers(EventType.Input);
+                }
                 await UniTask.Yield(PlayerLoopTiming.LastEarlyUpdate, _cts);
             }
         }
@@ -112,17 +146,17 @@ namespace TaskSample
 
         public void AddObserver(IObserver observer)
         {
-            _observers.Add(observer);
+            _Observers.Add(observer);
         }
 
         public void RemoveOvserver(IObserver observer)
         {
-            _observers.Remove(observer);
+            _Observers.Remove(observer);
         }
 
         protected void NotifyOvservers(EventType eventType)
         {
-            _observers.ForEach(observer => observer.OnNotify(eventType));
+            _Observers.ForEach(observer => observer.OnNotify(eventType));
         }
     }
 }
