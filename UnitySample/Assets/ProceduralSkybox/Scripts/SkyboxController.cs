@@ -57,7 +57,7 @@ public class SkyboxController : MonoBehaviour
         if (skyboxmaterial && lightTransform)
         {
             lightTransform.Rotate(Vector3.right, _RotateSpeed);
-            moonTransform.Rotate(Vector3.right, _RotateSpeed);
+            moonTransform.Rotate(Vector3.right, -_RotateSpeed);
             if (_Timer < halfDayFrame)
             {
                 _Timer += Time.timeScale;

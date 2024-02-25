@@ -2,32 +2,57 @@ Shader "Custom/kelvinSkybox"
 {
     Properties
     {
-        [NoScaleOffset] _SkyGradient ("SkyGradient", 2D) = "white" {}
-        [NoScaleOffset] _HorizonHazeGradient ("HorizonHazeGradient", 2D) = "white" {}
-        [NoScaleOffset] _SunBloomGradient ("SunBloomGradient", 2D) = "white" {}
-        [NoScaleOffset] _StarCubeMap ("Star cube map", Cube) = "black" {}
-        _SunDir("SunDir", Vector) = (0, 0, 0, 1)
-        _SunColor("SunColor", Color) = (1, 1, 1, 1)
-        _SunRadius ("SunRadius", Range(0, 10)) = 0.05
-        _SunExposure ("SunExposure", Range(-16, 16)) = 0
-        _SunInnerBoundary ("SunInnerBoundary", float) = 0.2
-        _SunOuterBoundary ("SunOuterBoundary", float) = 0.8
-        _SunDisplayLimit ("SunDisplayLimit", Range(-1, 0)) = -0.6
-        _MoonDir ("MoonDir", Vector) = (0, 0, 0, 1)
-        _MoonColor("MoonColor", Color) = (1, 1, 1, 1)
-        _MoonRadius ("MoonRadius", Range(0,1)) = 0.05
-        _MoonDisplayLimit ("MoonDisplayLimit", Range(-1, 0)) = -0.6
-        _MoonExposure ("MoonExposure", Range(-16, 16)) = 0
-        _StarExposure ("StarExposure", Range(-16, 16)) = 0
-        _StarPower ("StarPower", Range(1,5)) = 1
+        [Header(Sun Settings)]
+        _SunDir("Sun Dir", Vector) = (0, 0, 0, 1)
+        _SunColor("Sun Color", Color) = (1, 1, 1, 1)
+        _SunRadius ("Sun Radius", Range(0, 10)) = 0.05
+        _SunExposure ("Sun Exposure", Range(-16, 16)) = 0
+        _SunInnerBoundary ("Sun InnerBoundary", float) = 0.2
+        _SunOuterBoundary ("Sun OuterBoundary", float) = 0.8
+        _SunDisplayLimit ("Sun DisplayLimit", Range(-1, 0)) = -0.6
+
+        [Header(Moon Settings)]
+        _MoonDir ("Moon Dir", Vector) = (0, 0, 0, 1)
+        _MoonColor("Moon Color", Color) = (1, 1, 1, 1)
+        _MoonRadius ("Moon Radius", Range(0,1)) = 0.05
+        _MoonExposure ("Moon Exposure", Range(-16, 16)) = 0
+        _MoonDisplayLimit ("Moon DisplayLimit", Range(-1, 0)) = -0.6
+
+        [Header(Sky Settings)]
+        [NoScaleOffset] _SkyGradient ("Sky Gradient", 2D) = "white" {}
+        [NoScaleOffset] _HorizonHazeGradient ("HorizonHaze Gradient", 2D) = "white" {}
+        [NoScaleOffset] _SunBloomGradient ("SunBloom Gradient", 2D) = "white" {}
+
+        [Header(Cloud Settings)]
+		[NoScaleOffset] _CloudTexture("CloudTexture", 2D) = "black" {}
+		_CloudCutoff("Cloud Cutoff",  Range(0, 1)) = 0.08
+        _Fuzziness("Cloud Fuzziness",  Range(-5, 5)) = 0.04
+		_CloudSpeed("Cloud Move Speed",  Range(-10, 10)) = 0.3
+		_CloudScale("Cloud Scale",  Range(-10, 10)) = 0.3
+        _DistortTexture("Distort Texture", 2D) = "black" {}
+		_DistortScale("Distort Noise Scale",  Range(0, 1)) = 0.06
+		_DistortionSpeed("Distortion Speed",  Range(-1, 1)) = 0.1
+		_CloudNoise("Cloud Noise", 2D) = "black" {}
+		_CloudNoiseScale("Cloud Noise Scale",  Range(0, 1)) = 0.2
+		_CloudNoiseSpeed("Cloud Noise Speed",  Range(-1, 1)) = 0.1
+		_CloudColorDayEdge("Cloud Color Day Edge", Color) = (0.0,0.2,0.1,1)
+		_CloudColorDayMain("Cloud Color Day Main", Color) = (0.6,0.7,0.6,1)
+        _CloudColorNightEdge("Cloud Color Night Edge", Color) = (0.0,0.2,0.1,1)
+		_CloudColorNightMain("Cloud Color Night Main", Color) = (0.6,0.7,0.6,1)
+
+        [Header(Star Settings)]
+        [NoScaleOffset] _StarsTexture ("Stars Texture", 2D) = "black" {}
+        _StarsCutoff("Stars Cutoff",  Range(0, 1)) = 0.1
+        _StarsSpeed("Stars Move Speed",  Range(-10, 10)) = 0.3
+		_StarScale("Star Scale",  Range(-10, 10)) = 0.3
 
     }
     SubShader
     {
-        //Tags { "Queue"="Background" "RenderType"="Background" "PreviewType"="Skybox" }
-        Tags { "Queue"= "Geometry" "RenderType"="Background" "PreviewType"="Skybox" }
+        Tags { "Queue"="Background" "RenderType"="Background" "PreviewType"="Skybox" }
+        //Tags { "Queue"= "Geometry" "RenderType"="Background" "PreviewType"="Skybox" }
         Cull Off 
-        //ZWrite Off
+        ZWrite Off
 
         Pass
         {
@@ -82,8 +107,17 @@ Shader "Custom/kelvinSkybox"
             TEXTURE2D(_SunBloomGradient);
             SAMPLER(sampler_SunBloomGradient);
 
-            TEXTURECUBE(_StarCubeMap);      
-            SAMPLER(sampler_StarCubeMap);
+            TEXTURE2D(_StarsTexture);      
+            SAMPLER(sampler_StarsTexture);
+
+            TEXTURE2D(_CloudTexture);      
+            SAMPLER(sampler_CloudTexture);
+
+            TEXTURE2D(_DistortTexture);      
+            SAMPLER(sampler_DistortTexture);
+
+            TEXTURE2D(_CloudNoise);      
+            SAMPLER(sampler_CloudNoise);
 
             CBUFFER_START(UnityPerMaterial)
             float3 _SunDir;
@@ -98,8 +132,21 @@ Shader "Custom/kelvinSkybox"
             float _MoonRadius;
             float _MoonDisplayLimit;
             float _MoonExposure;
-            float _StarExposure;
-            float _StarPower;
+            float _CloudCutoff;
+            float _Fuzziness;
+		    float _CloudSpeed;
+		    float _CloudScale;
+            float _DistortScale;
+            float _DistortionSpeed;
+            float _CloudNoiseScale;
+            float _CloudNoiseSpeed;
+            float _StarsCutoff;
+            float _StarsSpeed;
+		    float _StarScale;
+            float4 _CloudColorDayEdge;
+		    float4 _CloudColorDayMain;
+            float4 _CloudColorNightEdge;
+		    float4 _CloudColorNightMain;
             CBUFFER_END
 
             v2f Vertex(Attributes IN)
@@ -147,24 +194,41 @@ Shader "Custom/kelvinSkybox"
 
                 // The sky
                 //float skyArea = step(sunArea , sunMask);
-                float2 skyUV =  float2(height, 0.5);
-                float3 skyColor = SAMPLE_TEXTURE2D(_SkyGradient,sampler_SkyGradient, skyUV).rgb;
+                float2 heightUV =  float2(height, 0.5);
+                float3 skyColor = SAMPLE_TEXTURE2D(_SkyGradient,sampler_SkyGradient, heightUV).rgb;
 
                 float viewMask = pow(saturate(1.0 - dir.y), 4);
-                float3 horizonColor = viewMask * SAMPLE_TEXTURE2D(_HorizonHazeGradient,sampler_HorizonHazeGradient, skyUV).rgb;
+                float3 horizonColor = viewMask * SAMPLE_TEXTURE2D(_HorizonHazeGradient,sampler_HorizonHazeGradient,heightUV).rgb;
 
                 // Sun lighting
                 float sunBloomMask = pow(saturate(sunViewDot), 4);
-                float3 sunBloomColor = sunBloomMask * SAMPLE_TEXTURE2D(_SunBloomGradient, sampler_SunBloomGradient, skyUV).rgb;
+                float3 sunBloomColor = sunBloomMask * SAMPLE_TEXTURE2D(_SunBloomGradient, sampler_SunBloomGradient,heightUV).rgb;
 
-                //
-                float3 starColor = SAMPLE_TEXTURECUBE(_StarCubeMap, sampler_StarCubeMap, dir).rgb;
-                float starStrength = (1 - sunViewDot01) * (saturate(-_SunDir.y));
-                starColor = pow(abs(starColor), _StarPower);
-                starColor *= (1 - sunArea) * (1 - moonMask) * exp2(_StarExposure) * starStrength;
+                float2 skyUV = dir.xz / dir.y;
+                // Cloud
+                float baseNoise = SAMPLE_TEXTURE2D(_CloudTexture, sampler_CloudTexture, (skyUV + float2(_CloudSpeed, _CloudSpeed) * _Time.x) * _CloudScale).r;
+                float distortnoise = SAMPLE_TEXTURE2D(_DistortTexture, sampler_DistortTexture, (skyUV + baseNoise - _DistortionSpeed) * _DistortScale).r;
+				float noise2 = SAMPLE_TEXTURE2D(_CloudNoise, sampler_CloudNoise, (skyUV + distortnoise - _CloudNoiseSpeed) * _CloudNoiseScale).r;
+				float finalNoise = saturate(distortnoise * noise2) * saturate(dir.y);
+                float clouds = saturate(smoothstep(_CloudCutoff, _CloudCutoff + _Fuzziness, finalNoise));
 
-                float3 skyCombineColor = skyColor + horizonColor + sunBloomColor + starColor;
-                float3 col = skyCombineColor + sunColor + moonColor;
+                float3 cloudDayColor = lerp(_CloudColorDayEdge,  _CloudColorDayMain , clouds) * clouds;
+                float3 cloudNightColor =  lerp(_CloudColorNightEdge,  _CloudColorNightMain , clouds) * clouds;
+                float3 cloudColor = lerp(cloudNightColor, cloudDayColor,_SunDir.y);
+
+                // Star
+                float2 starUV = (skyUV + float2(_StarsSpeed, _StarsSpeed) * _Time.x) * _StarScale;
+                float4 starTex = SAMPLE_TEXTURE2D(_StarsTexture, sampler_StarsTexture, starUV);
+                float starMask = step(_StarsCutoff,  starTex.r) * saturate(-_SunDir.y);
+                starMask = (1 - sunArea) * (1 - moonMask) * starMask;
+                float3 starColor = starTex.rgb * starMask;
+
+                starColor *= (1 - clouds);
+                sunColor *= (1 - clouds);
+                moonColor *= (1 - clouds);
+
+                float3 skyCombineColor = skyColor + horizonColor + sunBloomColor;
+                float3 col = skyCombineColor + sunColor + moonColor + cloudColor + starColor;
                 return float4(col, 1);
             }
             ENDHLSL
