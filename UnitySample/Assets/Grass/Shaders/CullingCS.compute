@@ -6,15 +6,59 @@
 #define THREAD_GROUP_SIZE_Y 1
 #define THREAD_GROUP_SIZE_Z 1
 
-float4x4 cameraMartixVP;
+float4x4 inverseVPMatrix;
 
-StructuredBuffer<float4x4> _MatricesBuffer;
-RWStructuredBuffer<instanceData> _ObjectsBuffer;
+//StructuredBuffer<float4x4> _MatricesBuffer;
+StructuredBuffer<boundData> _BoundsBuffer;
+StructuredBuffer<instanceData> _ObjectsBuffer;
+AppendStructuredBuffer<instanceData> _CullingResultBuffer;
+
+inline uint IsVisibleAfterFrustumCulling(float4 clipPos)
+{
+    return (clipPos.z > clipPos.w 
+            || clipPos.x < -clipPos.w 
+            || clipPos.x > clipPos.w 
+            || clipPos.y < -clipPos.w 
+            || clipPos.y > clipPos.w) 
+            ? 0 : 1;
+}
 
 [numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
     uint index = id.x;
 
-     float4x4 mvp = mul(cameraMartixVP, _MatricesBuffer[index]);
+    boundData bound = _BoundsBuffer[index];
+
+    // Calculate AABB minPos and maxPos
+    float3 minPos = bound.boundsCenter - bound.boundsExtents;
+    float3 maxPos = bound.boundsCenter + bound.boundsExtents;
+
+    // AABB 8 point 
+    float4 boxCorners[8];
+    boxCorners[0] = float4(minPos.x, minPos.y, minPos.z, 1.0);
+    boxCorners[1] = float4(minPos.x, minPos.y, maxPos.z, 1.0);
+    boxCorners[2] = float4(minPos.x, maxPos.y, minPos.z, 1.0);
+    boxCorners[3] = float4(minPos.x, maxPos.y, maxPos.z, 1.0);
+    boxCorners[4] = float4(maxPos.x, minPos.y, minPos.z, 1.0);
+    boxCorners[5] = float4(maxPos.x, minPos.y, maxPos.z, 1.0);
+    boxCorners[6] = float4(maxPos.x, maxPos.y, minPos.z, 1.0);
+    boxCorners[7] = float4(maxPos.x, maxPos.y, maxPos.z, 1.0);
+
+    uint isInFrustum = 0;
+    for (int i = 0; i < 8; i++)
+    {
+        float4 clipPos = mul(inverseVPMatrix, boxCorners[i]);
+
+        // For Frustum
+        isInFrustum = saturate(isInFrustum + IsVisibleAfterFrustumCulling(clipPos));
+    }
+
+    if(isInFrustum == 0)
+    {
+        return;
+    }
+
+    instanceData originalData = _ObjectsBuffer[index];
+    _CullingResultBuffer.Append(originalData);
 }

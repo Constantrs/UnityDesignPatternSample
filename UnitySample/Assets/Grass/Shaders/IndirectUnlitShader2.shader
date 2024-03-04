@@ -42,13 +42,14 @@ Shader "Unlit/IndirectUnlitShader2"
             // インスタンスデータ
             StructuredBuffer<float4x4> _MatricesBuffer;
             StructuredBuffer<float4> _MaterialsBuffer;
-            StructuredBuffer<instanceData> _ObjectsBuffer;
+            //StructuredBuffer<instanceData> _ObjectsBuffer;
+            StructuredBuffer<instanceData> _CullingResultBuffer;
 
             v2f vert(Attributes IN, uint instanceID : SV_InstanceID)
             {
                 v2f OUT = (v2f)0;
 
-                instanceData data = _ObjectsBuffer[instanceID];
+                instanceData data = _CullingResultBuffer[instanceID];
                 float4x4 m = _MatricesBuffer[data.matrixIndex];
                 float4 worldPosition = mul(m, IN.posOS);
 
