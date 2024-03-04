@@ -1,0 +1,20 @@
+#include "IndirectCommon.hlsl"
+
+#pragma kernel CSMain
+
+#define THREAD_GROUP_SIZE_X 64
+#define THREAD_GROUP_SIZE_Y 1
+#define THREAD_GROUP_SIZE_Z 1
+
+float4x4 cameraMartixVP;
+
+StructuredBuffer<float4x4> _MatricesBuffer;
+RWStructuredBuffer<instanceData> _ObjectsBuffer;
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    uint index = id.x;
+
+     float4x4 mvp = mul(cameraMartixVP, _MatricesBuffer[index]);
+}
