@@ -2,17 +2,24 @@
 
 #pragma kernel CSMain
 
-#define THREAD_GROUP_SIZE_X 64
+#define THREAD_GROUP_SIZE_X 32
 #define THREAD_GROUP_SIZE_Y 1
 #define THREAD_GROUP_SIZE_Z 1
 
-float4x4 inverseVPMatrix;
+float4x4 cameraVPMatrix;
 
 //StructuredBuffer<float4x4> _MatricesBuffer;
 StructuredBuffer<boundData> _BoundsBuffer;
 StructuredBuffer<instanceData> _ObjectsBuffer;
 AppendStructuredBuffer<instanceData> _CullingResultBuffer;
 
+inline uint IsCameraOutsideObjBounds(float3 pos, float3 minPos, float3 maxPos)
+{
+    float boundsSize = distance(maxPos, minPos);
+    return((distance(pos, maxPos) > boundsSize)
+    + (distance(pos, minPos) > boundsSize));
+}
+ 
 inline uint IsVisibleAfterFrustumCulling(float4 clipPos)
 {
     return (clipPos.z > clipPos.w 
@@ -44,14 +51,15 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     boxCorners[5] = float4(maxPos.x, minPos.y, maxPos.z, 1.0);
     boxCorners[6] = float4(maxPos.x, maxPos.y, minPos.z, 1.0);
     boxCorners[7] = float4(maxPos.x, maxPos.y, maxPos.z, 1.0);
-
+ 
+    //TODO: check if this validation check is required
     uint isInFrustum = 0;
     for (int i = 0; i < 8; i++)
     {
-        float4 clipPos = mul(inverseVPMatrix, boxCorners[i]);
-
-        // For Frustum
-        isInFrustum = saturate(isInFrustum + IsVisibleAfterFrustumCulling(clipPos));
+       float4 clipPos = mul(cameraVPMatrix, boxCorners[i]);
+ 
+       // For Frustum
+       isInFrustum = saturate(isInFrustum + IsVisibleAfterFrustumCulling(clipPos));
     }
 
     if(isInFrustum == 0)

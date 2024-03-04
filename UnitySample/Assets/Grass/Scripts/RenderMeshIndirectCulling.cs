@@ -26,7 +26,7 @@ public class RenderMesIndirect : MonoBehaviour
     private static readonly int OBJECTS_BUFFER_ID = Shader.PropertyToID("_ObjectsBuffer");
     private static readonly int CULLING_RESULT_BUFFER_ID = Shader.PropertyToID("_CullingResultBuffer");
 
-    private static readonly int INVERSE_VP_MATRIX_ID = Shader.PropertyToID("inverseVPMatrix");
+    private static readonly int CAMERA_VP_MATRIX_ID = Shader.PropertyToID("cameraVPMatrix");
 
     [SerializeField] private Camera _camera;
     [SerializeField] private Mesh _mesh = null;
@@ -65,7 +65,7 @@ public class RenderMesIndirect : MonoBehaviour
     private int _kernelIndex;
     private int _totalCount = 0;
     
-    private Matrix4x4 _inverseVPMatrix;
+    private Matrix4x4 _cameraVPMatrix;
 
     // Start is called before the first frame update
     void Start()
@@ -99,18 +99,16 @@ public class RenderMesIndirect : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // カメラ空間
-        Matrix4x4 v = _camera.worldToCameraMatrix;
-        Matrix4x4 p = _camera.projectionMatrix;
-        _inverseVPMatrix =  p * v;
+        // カメラVP
+        _cameraVPMatrix = math.mul(_camera.projectionMatrix, _camera.worldToCameraMatrix); 
 
         UpdateDebugAABBInfo();
 
         // カリング結果リセット
         _cullingResultBuffer.SetCounterValue(0);
-        _cullingComputeShader.SetMatrix(INVERSE_VP_MATRIX_ID, _inverseVPMatrix);
+        _cullingComputeShader.SetMatrix(CAMERA_VP_MATRIX_ID, _cameraVPMatrix);
         _cullingComputeShader.SetBuffer(_kernelIndex, CULLING_RESULT_BUFFER_ID, _cullingResultBuffer);
-        _cullingComputeShader.Dispatch(_kernelIndex, _totalCount, 1, 1);
+        _cullingComputeShader.Dispatch(_kernelIndex, (_totalCount / 32), 1, 1);
 
         // StructuredBuffer > シェーダ 
         _material.SetBuffer(CULLING_RESULT_BUFFER_ID, _cullingResultBuffer);
@@ -143,7 +141,7 @@ public class RenderMesIndirect : MonoBehaviour
             {
                 var z = j - _column * 0.5f + 1.0f;
                 var p = math.float3(_centerOffset.x + x, _centerOffset.y, _centerOffset.z + z);
-                _boundsInfos.Add(new AABBBoundsInfo() { center = p, extents = Vector3.one });
+                _boundsInfos.Add(new AABBBoundsInfo() { center = p, extents = new Vector3(0.5f, 0.5f, 0.5f) });
                 _debugBoundsColor.Add(Color.white);
                 matrices[offs] = float4x4.Translate(p);
                 offs++;
@@ -256,8 +254,9 @@ public class RenderMesIndirect : MonoBehaviour
                 for (var i = 0; i < _totalCount; i++)
                 {
                     var boundInfo = _boundsInfos[i];
+                    Vector3 size = boundInfo.extents * 2.0f;
                     Gizmos.color = _debugBoundsColor[i];
-                    Gizmos.DrawWireCube(boundInfo.center, boundInfo.extents);
+                    Gizmos.DrawWireCube(boundInfo.center, size);
                 }
             }
         }
