@@ -11,6 +11,7 @@ using static RenderMesIndirect;
 public class IndirectGrass : MonoBehaviour
 {
     private static readonly int COMMAND_COUNT = 1;
+    private static readonly Vector3 BASE_GRASS_SCALE = new Vector3(0.25f, 0.25f, 0.25f);
 
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
@@ -35,12 +36,16 @@ public class IndirectGrass : MonoBehaviour
     [SerializeField] public int column = 0;
     // 中心
     [SerializeField] public Vector3 centerOffset = Vector3.zero;
+    // 中心
+    [SerializeField] public Vector3 grassCenterOffset = Vector3.zero;
     // 半径
-    [SerializeField] public float grassRadius;
+    [SerializeField] public float grassHalfRadius;
     // 高度
-    [SerializeField] public float grassHeight;
+    [SerializeField] public float grassHalfHeight;
     // 間隔
     [SerializeField] public float grassIntervalDistance;
+
+    [SerializeField] public bool _debugAABB = false;
 
     [SerializeField] private Camera _camera;
     [SerializeField] private Mesh _mesh = null;
@@ -139,21 +144,21 @@ public class IndirectGrass : MonoBehaviour
         _groupX = Mathf.CeilToInt(row / 32);
         _groupY = Mathf.CeilToInt(column / 32);
         
-        float width = (row - 1) * (grassRadius * 2.0f + grassIntervalDistance);
-        float depth = (column - 1) * (grassRadius * 2.0f + grassIntervalDistance);
-        float3 scale = math.float3(grassRadius * 2.0f, grassHeight, grassRadius * 2.0f);
+        float width = (row - 1) * (grassHalfRadius * 2.0f + grassIntervalDistance);
+        float depth = (column - 1) * (grassHalfRadius * 2.0f + grassIntervalDistance);
+        float3 scale = math.float3(BASE_GRASS_SCALE.x * grassHalfRadius * 2.0f, BASE_GRASS_SCALE.y * grassHalfHeight * 2.0f, BASE_GRASS_SCALE.z * grassHalfRadius * 2.0f);
         // デフォルトXZ座標
         var matrices = new NativeArray<Matrix4x4>(_totalCount, Allocator.Persistent);
         var offs = 0;
         for (var i = 0; i < row; i++)
         {
-            var x = -0.5f * width + i * (grassRadius * 2.0f + grassIntervalDistance);
+            var x = -0.5f * width + i * (grassHalfRadius * 2.0f + grassIntervalDistance);
             for (var j = 0; j < column; j++)
             {
-                var z = -0.5f * depth + j * (grassRadius * 2.0f + grassIntervalDistance);
+                var z = -0.5f * depth + j * (grassHalfRadius * 2.0f + grassIntervalDistance);
                 var groundPos = math.float3(centerOffset.x + x, centerOffset.y, centerOffset.z + z);
-                var centetPos = math.float3(centerOffset.x + x, centerOffset.y + (grassHeight * 0.5f), centerOffset.z + z);
-                _AABBInfos.Add(new GrassAABBInfo() { center = centetPos, extents = new Vector3(grassRadius, 1.0f, grassRadius) });
+                var centetPos = groundPos + math.float3(grassCenterOffset);
+                _AABBInfos.Add(new GrassAABBInfo() { center = centetPos, extents = new Vector3(grassHalfRadius, grassHalfHeight, grassHalfRadius) });
                 matrices[offs] = float4x4.TRS(groundPos, Quaternion.identity, scale);
                 offs++;
             }
@@ -203,5 +208,28 @@ public class IndirectGrass : MonoBehaviour
 
         matrices.Dispose();
         data.Dispose();
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (_debugAABB)
+        {
+            if (_camera != null)
+            {
+                Gizmos.color = Color.magenta;
+                Gizmos.DrawFrustum(_camera.transform.position, _camera.fieldOfView, _camera.farClipPlane, _camera.nearClipPlane, _camera.aspect);
+            }
+
+            if (_AABBInfos != null)
+            {
+                for (var i = 0; i < _totalCount; i++)
+                {
+                    var boundInfo = _AABBInfos[i];
+                    Vector3 size = boundInfo.extents * 2.0f;
+                    Gizmos.color = Color.blue;
+                    Gizmos.DrawWireCube(boundInfo.center, size);
+                }
+            }
+        }
     }
 }

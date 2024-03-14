@@ -2,7 +2,8 @@ Shader "Unlit/IndirectGrass"
 {
     Properties
     {
-
+        _BottomColor("Bottom Color", Color) = (0, 0, 0, 1)
+		_TopColor("Top Color", Color) = (1, 1, 1, 1)
     }
     SubShader
     {
@@ -42,6 +43,11 @@ Shader "Unlit/IndirectGrass"
             StructuredBuffer<float4x4> _MatricesBuffer;
             StructuredBuffer<instanceData> _CullingResultBuffer;
 
+            CBUFFER_START(UnityPerMaterial)
+				float4 _BottomColor;
+				float4 _TopColor;
+			CBUFFER_END
+
             v2f vert(Attributes IN, uint instanceID : SV_InstanceID)
             {
                 v2f OUT = (v2f)0;
@@ -58,7 +64,8 @@ Shader "Unlit/IndirectGrass"
             float4 frag(v2f IN) : SV_Target
             {
                 float2 uv = IN.uv;
-                return float4(uv.y,uv.y,uv.y,1.0);
+                float4 color = lerp( _BottomColor, _TopColor, uv.y);
+                return  color;
             }
             ENDHLSL
         }

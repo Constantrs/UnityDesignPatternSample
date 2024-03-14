@@ -463,11 +463,13 @@ MonoBehaviour:
   row: 32
   column: 32
   centerOffset: {x: 0, y: 0, z: 0}
-  grassRadius: 0.125
-  grassHeight: 1
-  grassIntervalDistance: 0.125
+  grassCenterOffset: {x: 0, y: 0.5, z: 0}
+  grassHalfRadius: 0.1875
+  grassHalfHeight: 0.375
+  grassIntervalDistance: 0
+  _debugAABB: 0
   _camera: {fileID: 961739752}
-  _mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  _mesh: {fileID: 2949893962580367973, guid: 6cffe1c468208a3489e7150856d9e80d, type: 3}
   _material: {fileID: 2100000, guid: 54f7dccb03762cc4e8f47738793040f5, type: 2}
   _cullingComputeShader: {fileID: 7200000, guid: 0a0d2084586b6eb4f9699ad9400ff906,
     type: 3}
